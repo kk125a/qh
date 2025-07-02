@@ -1,0 +1,165 @@
+2025-06-17 19:27:33 | INFO     | 开始新的对话，日志文件：D:\desktop\ww\data\logs\chat_20250617_192733.log
+2025-06-17 19:27:50 | INFO     | 向量存储初始化完成
+2025-06-17 19:27:51 | INFO     | 成功搜索到 5 个相关文档
+2025-06-17 19:27:54 | INFO     | 用户输入: 你好
+2025-06-17 19:27:54 | INFO     | AI响应: 您好！请问您想了解哪方面的内容呢？您可以具体问一些关于实验报告的问题，比如数据集的说明、模型训练的过程和结果等。根据提供的文档信息，我可以为您详细解答相关问题。
+
+例如，如果您想了解：
+1. 数据集的具体情况。
+2. 模型训练与评估的相关代码。
+3. 实验的效果如何？
+4. 在实验过程中遇到了哪些技术难点及优化措施？
+
+请告诉我您具体关心的内容，我将为您提供详细的答案。
+2025-06-17 19:27:54 | INFO     | 相关文档: [{'content': '**模型训练与评估代码**：', 'metadata': {'source': 'D:\\desktop\\ww\\data\\documents\\深度学习实验报告.md', 'filename': '深度学习实验报告.md', 'chunk_id': 9, 'total_chunks': 72}, 'distance': 0.5178080797195435}, {'content': 'if __name__ == "__main__":\n    # digit 文件夹里是 0.png~9.png 和 x.png\n    src_digits_dir = r"D:\\coding\\projects\\pythons\\kkkk\\ID\\digits"\n    dst_dataset_dir = r"D:\\coding\\projects\\pythons\\kkkk\\ID\\dataset"\n    make_dataset(src_digits_dir, dst_dataset_dir, num_per_class=100, split_ratio=(0.8, 0.1, 0.1))\n    print("数据集增强与划分完成！")\n```\n\n#### （3）模型训练与评估代码\n\n```python\nimport os\nimport numpy as np\nimport torch\nimport torch.nn as nn\nimport torch.optim as optim\nfrom torch.utils.data import DataLoader\nfrom torchvision import transforms\nfrom torchvision.datasets import ImageFolder\nimport matplotlib.pyplot as plt\nfrom tqdm import tqdm\nplt.rcParams["font.family"] = ["SimHei"]\nplt.rcParams[\'axes.unicode_minus\'] = False  # 解决负号显示问题\n# 配置\nDATA_DIR = r"D:\\coding\\projects\\pythons\\kkkk\\ID\\dataset"\nBATCH_SIZE = 32\nNUM_CLASSES = 11  # 0-9 + x\nEPOCHS = 20\nLEARNING_RATE = 1e-3\nDEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")\nMODEL_SAVE_PATH = "./cnn_id_digit.pth"', 'metadata': {'chunk_id': 24, 'source': 'D:\\desktop\\ww\\data\\documents\\深度学习实验报告.md', 'filename': '深度学习实验报告.md', 'total_chunks': 72}, 'distance': 0.7401455640792847}, {'content': "#### （2）数据集说明\n\n| 数据属性   | 参数描述                                                     |\n| ---------- | ------------------------------------------------------------ |\n| 数据集名称 | 自定义人脸年龄数据集                                         |\n| 图像尺寸   | 224×224×3                                                    |\n| 样本数量   | {'train': 15924, 'valid': 1991, 'test': 1991}                |\n| 类别分布   | 类别名称: ['MIDDLE', 'OLD', 'YOUNG']                         |\n| 预处理方法 | - 训练集：随机裁剪、水平翻转、颜色抖动 - 验证 / 测试集：中心裁剪 - 所有图像归一化（均值 =[0.485, 0.456, 0.406]，标准差 =[0.229, 0.224, 0.225]） |\n\n![image-20250519150028520](C:\\Users\\15532\\AppData\\Roaming\\Typora\\typora-user-images\\image-20250519150028520.png)\n\n![image-20250519150606860](C:\\Users\\15532\\AppData\\Roaming\\Typora\\typora-user-images\\image-20250519150606860.png)\n\n#### （3）实验效果\n\n| 评价指标     | 实验结果 |\n| ------------ | -------- |\n| 训练准确率   | 92.28%   |\n| 验证集准确率 | 84.73%   |\n| 测试集准确率 | 84.58%   |\n| 最佳模型轮次 | Epoch 85 |", 'metadata': {'filename': '深度学习实验报告.md', 'total_chunks': 72, 'chunk_id': 4, 'source': 'D:\\desktop\\ww\\data\\documents\\深度学习实验报告.md'}, 'distance': 0.7511638402938843}, {'content': 'transforms.CenterCrop(Config.IMG_SIZE),\n             transforms.ToTensor(),\n             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])\n         ]),\n     }\n     ```\n   \n   - ### **三者对比总结**\n   \n     | 数据集     | 核心处理差异                                             | 目标                                                       |\n     | ---------- | -------------------------------------------------------- | ---------------------------------------------------------- |\n     | **训练集** | 应用随机裁剪、水平翻转、颜色抖动等强数据增强。           | 增加数据多样性，提升模型泛化能力，缓解过拟合。             |\n     | **验证集** | 固定缩放→中心裁剪→标准化（无数据增强）。                 | 稳定评估模型在训练过程中的性能，避免增强操作干扰指标判断。 |\n     | **测试集** | 与验证集处理完全一致，通常与验证集共享相同的预处理逻辑。 | 最终评估模型的泛化能力，确保结果可复现且无数据泄漏。       |\n   \n   - \n   \n2. **过拟合处理**\n   - 使用预训练模型进行迁移学习，冻结前层参数仅微调最后几层\n   - 添加 Dropout (0.5) 层减少神经元共适应问题\n   - 实现早停机制，保存验证集表现最佳的模型权重\n   \n3. **关键创新点**\n   - 设计适合年龄分类的 ResNet50 改进架构，平衡特征提取能力与训练效率\n   - 实现自动数据集划分与缓存机制，避免重复处理提高实验效率', 'metadata': {'total_chunks': 72, 'chunk_id': 7, 'source': 'D:\\desktop\\ww\\data\\documents\\深度学习实验报告.md', 'filename': '深度学习实验报告.md'}, 'distance': 0.7625237703323364}, {'content': '#### （3）实验效果\n\n| 评价指标     | 实验结果 |\n| ------------ | -------- |\n| 训练准确率   | 92.28%   |\n| 验证集准确率 | 84.73%   |\n| 测试集准确率 | 84.58%   |\n| 最佳模型轮次 | Epoch 85 |\n\n\n\n![image-20250526183402501](C:\\Users\\15532\\AppData\\Roaming\\Typora\\typora-user-images\\image-20250526183402501.png)\n\n**训练过程可视化**：\n\n![image-20250519145422544](C:\\Users\\15532\\AppData\\Roaming\\Typora\\typora-user-images\\image-20250519145422544.png)\n\n部分loss与accuracy曲线：\n![image-20250526183835423](C:\\Users\\15532\\AppData\\Roaming\\Typora\\typora-user-images\\image-20250526183835423.png)\n\n#### （4）技术难点与优化', 'metadata': {'filename': '深度学习实验报告.md', 'chunk_id': 5, 'source': 'D:\\desktop\\ww\\data\\documents\\深度学习实验报告.md', 'total_chunks': 72}, 'distance': 0.7648144960403442}]
+2025-06-17 19:27:58 | INFO     | 向量存储初始化完成
+2025-06-17 19:27:58 | INFO     | 成功搜索到 5 个相关文档
+2025-06-17 19:28:22 | INFO     | 用户输入: 不用
+2025-06-17 19:28:22 | INFO     | AI响应: 根据您提供的文档信息，我可以针对您的提问进行如下回复：
+
+### 1. 模型训练与评估代码概述
+
+在给定的代码段中，模型训练和评估相关的代码主要是通过PyTorch框架完成的。以下是具体步骤：
+- 数据集路径配置：`DATA_DIR = r"D:\coding\projects\pythons\kkkk\ID\dataset"`
+- 批量大小 `BATCH_SIZE = 32`
+- 类别数量 `NUM_CLASSES = 11`（0-9 + x）
+- 训练轮次 `EPOCHS = 20`
+- 学习率 `LEARNING_RATE = 1e-3`
+- 设备选择：优先使用GPU，否则使用CPU
+- 模型保存路径 `MODEL_SAVE_PATH = "./cnn_id_digit.pth"`
+
+### 2. 数据加载与预处理
+
+在训练过程中，将使用`ImageFolder`来加载图像数据集。数据会经过以下预处理步骤：
+- 训练集：随机裁剪、水平翻转、颜色抖动
+- 验证/测试集：中心裁剪
+- 所有图像进行归一化，均值 `[0.485, 0.456, 0.406]`，标准差 `[0.229, 0.224, 0.225]`
+
+### 3. 实验效果
+
+从实验报告中可以看到：
+- 训练准确率为 **92.28%**
+- 验证集准确率：**84.73%**
+- 测试集准确率：**84.58%**
+- 最佳模型轮次为 **Epoch 85**
+
+### 4. 示例代码片段
+
+这是代码中的一部分，用于在原图上打印识别结果：
+
+```python
+print(f"\n识别结果：\n身份证号码为：{id_number}")
+
+# 在原图中上方打印识别结果，不保存图片，使用plt展示
+img_show = img.copy()
+font = cv2.FONT_HERSHEY_SIMPLEX
+text = id_number
+text_size, _ = cv2.getTextSize(text, font, 1.2, 3)
+text_x = int((img_show.shape[1] - text_size[0]) // 2)
+text_y = 50 + text_size[1]  # 距离顶部留白50像素
+overlay = img_show.copy()
+cv2.rectangle(overlay, (text_x - 10, text_y - text_size[1] - 10),
+              (text_x + text_size[0] + 10, text_y + 10), (255, 255, 255), -1)
+alpha = 0.6
+img_show = cv2.addWeighted(overlay, alpha, img_show, 1 - alpha, 0)
+cv2.putText(img_show, text, (text_x, text_y), font, 1.2, (0, 0, 255), 3)
+```
+
+### 5. 标签读取代码
+
+这部分代码用于从标签文件中读取图像路径和对应的标签：
+```python
+# 读取标签文件
+with open(label_file, 'r', encoding='utf-8') as f:
+    print(f"正在加载数据集: {label_file}")
+    for line in tqdm(f, desc="读取标签文件"):
+        line = line.strip()
+        if not line:
+            continue
+
+        parts = line.split('\t')
+        if len(parts) != 2:
+            print(f"警告：格式不正确的行 '{line}'")
+            continue
+
+        img_path, label_str = parts
+        full_img_path = os.path.join(root_dir, img_path)
+
+        if not os.path.exists(full_img_path):
+            print(f"警告：图像文件不存在 '{full_img_path}'")
+            continue
+
+        # 解析标签为整数列表
+        try:
+            label = [int(idx) for idx in label_str.split()]
+        except ValueError:
+            print(f"警告：标签解析错误 '{label_str}'")
+            continue
+
+        self.samples.append((full_img_path, label))
+```
+
+如果您有更具体的问题或需要进一步的信息，请告知。
+2025-06-17 19:28:22 | INFO     | 相关文档: [{'content': '**模型训练与评估代码**：', 'metadata': {'total_chunks': 72, 'filename': '深度学习实验报告.md', 'chunk_id': 9, 'source': 'D:\\desktop\\ww\\data\\documents\\深度学习实验报告.md'}, 'distance': 0.6229408383369446}, {'content': 'if __name__ == "__main__":\n    # digit 文件夹里是 0.png~9.png 和 x.png\n    src_digits_dir = r"D:\\coding\\projects\\pythons\\kkkk\\ID\\digits"\n    dst_dataset_dir = r"D:\\coding\\projects\\pythons\\kkkk\\ID\\dataset"\n    make_dataset(src_digits_dir, dst_dataset_dir, num_per_class=100, split_ratio=(0.8, 0.1, 0.1))\n    print("数据集增强与划分完成！")\n```\n\n#### （3）模型训练与评估代码\n\n```python\nimport os\nimport numpy as np\nimport torch\nimport torch.nn as nn\nimport torch.optim as optim\nfrom torch.utils.data import DataLoader\nfrom torchvision import transforms\nfrom torchvision.datasets import ImageFolder\nimport matplotlib.pyplot as plt\nfrom tqdm import tqdm\nplt.rcParams["font.family"] = ["SimHei"]\nplt.rcParams[\'axes.unicode_minus\'] = False  # 解决负号显示问题\n# 配置\nDATA_DIR = r"D:\\coding\\projects\\pythons\\kkkk\\ID\\dataset"\nBATCH_SIZE = 32\nNUM_CLASSES = 11  # 0-9 + x\nEPOCHS = 20\nLEARNING_RATE = 1e-3\nDEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")\nMODEL_SAVE_PATH = "./cnn_id_digit.pth"', 'metadata': {'source': 'D:\\desktop\\ww\\data\\documents\\深度学习实验报告.md', 'total_chunks': 72, 'chunk_id': 24, 'filename': '深度学习实验报告.md'}, 'distance': 0.714087963104248}, {'content': "#### （2）数据集说明\n\n| 数据属性   | 参数描述                                                     |\n| ---------- | ------------------------------------------------------------ |\n| 数据集名称 | 自定义人脸年龄数据集                                         |\n| 图像尺寸   | 224×224×3                                                    |\n| 样本数量   | {'train': 15924, 'valid': 1991, 'test': 1991}                |\n| 类别分布   | 类别名称: ['MIDDLE', 'OLD', 'YOUNG']                         |\n| 预处理方法 | - 训练集：随机裁剪、水平翻转、颜色抖动 - 验证 / 测试集：中心裁剪 - 所有图像归一化（均值 =[0.485, 0.456, 0.406]，标准差 =[0.229, 0.224, 0.225]） |\n\n![image-20250519150028520](C:\\Users\\15532\\AppData\\Roaming\\Typora\\typora-user-images\\image-20250519150028520.png)\n\n![image-20250519150606860](C:\\Users\\15532\\AppData\\Roaming\\Typora\\typora-user-images\\image-20250519150606860.png)\n\n#### （3）实验效果\n\n| 评价指标     | 实验结果 |\n| ------------ | -------- |\n| 训练准确率   | 92.28%   |\n| 验证集准确率 | 84.73%   |\n| 测试集准确率 | 84.58%   |\n| 最佳模型轮次 | Epoch 85 |", 'metadata': {'chunk_id': 4, 'source': 'D:\\desktop\\ww\\data\\documents\\深度学习实验报告.md', 'filename': '深度学习实验报告.md', 'total_chunks': 72}, 'distance': 0.748285174369812}, {'content': 'print(f"\\n识别结果：\\n身份证号码为：{id_number}")\n\n    # 4. 在原图中上方打印识别结果，不保存图片，使用plt展示\n    img_show = img.copy()\n    font = cv2.FONT_HERSHEY_SIMPLEX\n    text = id_number\n    text_size, _ = cv2.getTextSize(text, font, 1.2, 3)\n    text_x = int((img_show.shape[1] - text_size[0]) // 2)\n    text_y = 50 + text_size[1]  # 距离顶部留白50像素\n    overlay = img_show.copy()\n    cv2.rectangle(overlay, (text_x - 10, text_y - text_size[1] - 10),\n                        (text_x + text_size[0] + 10, text_y + 10), (255,255,255), -1)\n    alpha = 0.6\n    img_show = cv2.addWeighted(overlay, alpha, img_show, 1 - alpha, 0)\n    cv2.putText(img_show, text, (text_x, text_y), font, 1.2, (0, 0, 255), 3)', 'metadata': {'chunk_id': 35, 'filename': '深度学习实验报告.md', 'source': 'D:\\desktop\\ww\\data\\documents\\深度学习实验报告.md', 'total_chunks': 72}, 'distance': 0.7580407857894897}, {'content': '# 读取标签文件\n        with open(label_file, \'r\', encoding=\'utf-8\') as f:\n            print(f"正在加载数据集: {label_file}")\n            for line in tqdm(f, desc="读取标签文件"):\n                line = line.strip()\n                if not line:\n                    continue\n\n                parts = line.split(\'\\t\')\n                if len(parts) != 2:\n                    print(f"警告：格式不正确的行 \'{line}\'")\n                    continue\n\n                img_path, label_str = parts\n                full_img_path = os.path.join(root_dir, img_path)\n\n                if not os.path.exists(full_img_path):\n                    print(f"警告：图像文件不存在 \'{full_img_path}\'")\n                    continue\n\n                # 解析标签为整数列表\n                try:\n                    label = [int(idx) for idx in label_str.split()]\n                except ValueError:\n                    print(f"警告：标签解析错误 \'{label_str}\'")\n                    continue\n\n                self.samples.append((full_img_path, label))', 'metadata': {'filename': '深度学习实验报告.md', 'total_chunks': 72, 'source': 'D:\\desktop\\ww\\data\\documents\\深度学习实验报告.md', 'chunk_id': 49}, 'distance': 0.7592066526412964}]
+2025-06-17 19:29:00 | INFO     | 向量存储初始化完成
+2025-06-17 19:29:01 | INFO     | 成功搜索到 5 个相关文档
+2025-06-17 19:29:07 | INFO     | 用户输入: 写一个代码，打印99乘法表，用go
+2025-06-17 19:29:07 | INFO     | AI响应: 根据您的要求，下面是一个简单的 Go 语言程序，用于打印99乘法表：
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+    // 打印99乘法表
+    for i := 1; i <= 9; i++ {
+        for j := 1; j <= i; j++ {
+            result := j * i
+            fmt.Printf("%d*%d=%-2d ", j, i, result)
+        }
+        // 换行
+        fmt.Println()
+    }
+}
+```
+
+此程序通过两个嵌套的 `for` 循环来生成乘法表，外层循环控制每一行（表示第一个因子），内层循环用于输出每一行中的每个乘积。`fmt.Printf` 用来格式化输出，确保每个结果对齐。
+
+要运行这段代码，请将其保存到一个 `.go` 文件中，并使用 Go 环境执行编译和运行命令。如果您需要进一步的帮助或调整代码以适应特定需求，请告诉我！
+2025-06-17 19:29:07 | INFO     | 相关文档: [{'content': '**模型训练与评估代码**：', 'metadata': {'source': 'D:\\desktop\\ww\\data\\documents\\深度学习实验报告.md', 'chunk_id': 9, 'total_chunks': 72, 'filename': '深度学习实验报告.md'}, 'distance': 0.2861974835395813}, {'content': '20\n答案:[是]\n辩解:我们已经报告了详细的设置和超参数。我们将发布我们的代码。\n准则:\n•答案NA表示论文不包括需要代码的实验。 \n•请参阅NeurIPS代码和数据提交指南(https://nips.cc/public/guides/CodeSubmissionPolicy)了解更多详细信息。 \n•虽然我们鼓励代码和数据的发布，但我们理解这可能是不可能的，所以“否”是一个可以接受的答案。论文不能仅仅因为不包含代码而被拒绝，除非这是贡献的核心(例如，为了一个新的开源基准)。 \n•说明应包含运行以重现结果所需的确切命令和环境。请参阅NeurIPS代码和数据提交指南(https: //nips.cc/public/guides/CodeSubmissionPolicy)了解更多细节。 \n•作者应提供有关数据访问和准备的说明，包括如何访问原始数据、预处理数据、中间数据和生成数据等。 \n•作者应提供脚本，以重现新提出的方法和基线的所有实验结果。如果只有一部分实验是可重复的，他们应该说明脚本中省略了哪些实验及其原因。 \n•在提交时，为了保持匿名性，作者应发布匿名版本(如果适用)。 \n•建议在补充材料(附在论文后)中提供尽可能多的信息，但允许包括数据和代码的url。\n6. 实验设置/详细信息\n问题:论文是否详细说明了理解结果所必需的所有训练和测试细节(例如，数据分割、超参数、如何选择它们、优化器的类型等)?\n答案:[是]\n辩解:我们已经报告了详细的设置和超参数。\n指导方针:\n•答案NA表示论文不包括实验。 \n•实验设置应该在论文的核心部分呈现到一定程度的细节，这是欣赏结果和理解结果所必需的。 \n•完整的细节可以在代码中、附录中或作为补充材料提供。\n7. 实验统计意义\n问题:论文是否恰当、正确地报告了误差条的定义或其他有关实验统计显著性的适当信息?\n答案:[是的]\n理由:我们已经报道了消融研究的置信区间。指南:\n•答案NA表示论文不包括实验。 \n•如果结果附有误差条、置信区间或统计显著性检验，至少对于支持论文主要主张的实验，作者应回答“是”。 \n•误差条捕获的可变性因素应明确说明(例如，训练/测试分割，初始化，某些参数的随机抽取，或在给定实验条件下的总体运行)。 \n•应解释计算误差条的方法(封闭形式公式，调用库函数，bootstrap等)', 'metadata': {'chunk_id': 35, 'total_chunks': 41, 'source': 'D:\\desktop\\ww\\data\\documents\\NeurIPS-2024-generate-universal-adversarial-perturbations-for-few-shot-learning-Paper-Conference的全文翻译.docx', 'filename': 'NeurIPS-2024-generate-universal-adversarial-perturbations-for-few-shot-learning-Paper-Conference的全文翻译.docx'}, 'distance': 0.5002382397651672}, {'content': '答案:[是的]\n理由:我们已经报道了消融研究的置信区间。指南:\n•答案NA表示论文不包括实验。 \n•如果结果附有误差条、置信区间或统计显著性检验，至少对于支持论文主要主张的实验，作者应回答“是”。 \n•误差条捕获的可变性因素应明确说明(例如，训练/测试分割，初始化，某些参数的随机抽取，或在给定实验条件下的总体运行)。 \n•应解释计算误差条的方法(封闭形式公式，调用库函数，bootstrap等) \n•应给出所做的假设(例如，正态分布的误差)。', 'metadata': {'source': 'D:\\desktop\\ww\\data\\documents\\NeurIPS-2024-generate-universal-adversarial-perturbations-for-few-shot-learning-Paper-Conference的全文翻译.docx', 'total_chunks': 41, 'chunk_id': 36, 'filename': 'NeurIPS-2024-generate-universal-adversarial-perturbations-for-few-shot-learning-Paper-Conference的全文翻译.docx'}, 'distance': 0.5156564116477966}, {'content': '•虽然NeurIPS不要求发布代码，但会议确实要求所有提交的论文提供一些合理的可再现性途径，这可能取决于贡献的性质。例如 \n(a)如果贡献主要是一个新算法，论文应该明确如何重现该算法。 \n(b)如果贡献主要是一个新的模型架构，论文应该清晰而完整地描述该架构。 \n(c)如果贡献是一个新模型(例如，一个大型语言模型)，那么要么应该有一种方法来访问这个模型以再现结果，要么应该有一种方法来重现模型(例如，使用开源数据集或如何构建数据集的说明)。 \n(d)我们认识到，在某些情况下，再现性可能会很棘手，在这种情况下，欢迎作者描述他们为再现性提供的特定方式。在闭源模型的情况下，可能是对模型的访问在某种程度上受到限制(例如，对注册用户)，但其他研究人员应该有可能有一些途径来复制或验证结果。\n5. 对数据和代码的开放访问\n问题:论文是否如补充材料中所述，提供了数据和代码的开放获取，并提供了足够的说明来忠实地再现主要实验结果?', 'metadata': {'total_chunks': 41, 'chunk_id': 34, 'source': 'D:\\desktop\\ww\\data\\documents\\NeurIPS-2024-generate-universal-adversarial-perturbations-for-few-shot-learning-Paper-Conference的全文翻译.docx', 'filename': 'NeurIPS-2024-generate-universal-adversarial-perturbations-for-few-shot-learning-Paper-Conference的全文翻译.docx'}, 'distance': 0.5460981130599976}, {'content': "## 三、全连接网络 vs CNN\n\n### 相同点\n\n1. 都采用分层结构处理特征\n2. 都使用反向传播算法进行参数更新\n3. 都需要激活函数引入非线性\n\n### 不同点\n\n| 比较维度 | 全连接网络          | CNN                   |\n| -------- | ------------------- | --------------------- |\n| 连接方式 | 相邻层全连接        | 局部连接+权值共享     |\n| 参数数量 | 随输入维度平方增长  | 参数与卷积核大小相关  |\n| 特征提取 | 全局特征            | 局部特征+空间相关性   |\n| 输入结构 | 需要展平为一维向量  | 保持原始二维/三维结构 |\n| 典型应用 | MNIST分类等简单任务 | 图像处理、视频分析等  |\n\n### 在MNIST数据集上的一些比较\n\n![image-20250614203030391](D:\\来时\\Knowledge\\深度学习\\image-20250614203030391.png)\n\n![image-20250614203037517](D:\\来时\\Knowledge\\深度学习\\image-20250614203037517.png)\n\n## 四、前向传播推导\n\n### 全连接网络前向公式\n\n对于第l层：  \n$$\na^{(l)} = f(z^{(l)}) = f(W^{(l)}a^{(l-1)} + b^{(l)})\n$$\n\n\n### CNN前向公式\n\n卷积层：  \n$$\nO_{x,y}^k = \\sum_{i=1}^{F}\\sum_{j=1}^{F} W_{i,j}^k \\cdot I_{x+i-1,y+j-1} + b^k\n$$\n\n池化层（以最大池化为例）：  \n$$\nP_{x,y} = \\max_{i,j \\in N(x,y)} O_{i,j}\n$$\n\n\n\n## 五、反向传播推导\n\n### 1. 全连接网络梯度计算\n\n定义损失函数L，对于输出层：  \n$$\n\\delta^{(L)} = \\frac{\\partial L}{\\partial z^{(L)}} = (y - t) \\odot f'(z^{(L)})\n$$", 'metadata': {'chunk_id': 1, 'source': 'D:\\desktop\\ww\\data\\documents\\深度学习实验报告.md', 'filename': '深度学习实验报告.md', 'total_chunks': 72}, 'distance': 0.571541428565979}]
+2025-06-17 19:29:17 | INFO     | 向量存储初始化完成
+2025-06-17 19:29:17 | INFO     | 成功删除文件 疑难记录.md 的所有文档块
+2025-06-17 19:29:17 | INFO     | 向量存储初始化完成
+2025-06-17 19:29:19 | INFO     | 向量存储初始化完成
+2025-06-17 19:29:19 | INFO     | 成功删除文件 NeurIPS-2024-generate-universal-adversarial-perturbations-for-few-shot-learning-Paper-Conference的全文翻译.docx 的所有文档块
+2025-06-17 19:29:19 | INFO     | 向量存储初始化完成
+2025-06-17 19:29:20 | INFO     | 向量存储初始化完成
+2025-06-17 19:29:20 | INFO     | 成功删除文件 深度学习实验报告.md 的所有文档块
+2025-06-17 19:29:20 | INFO     | 向量存储初始化完成
+2025-06-17 19:29:35 | INFO     | 向量存储初始化完成
+2025-06-17 19:29:36 | INFO     | 成功搜索到 2 个相关文档
+2025-06-17 19:29:47 | INFO     | 用户输入: 模型训练与评估代码概述
+2025-06-17 19:29:47 | INFO     | AI响应: 根据您提供的文档内容，“白梦伟.txt”文档主要是围绕着一个人物——白梦伟先生，并且通过一些典故和比喻来赞美他的才华和能力。文档中的内容并未涉及模型训练与评估的代码相关内容，因此无法直接从文档中得出关于模型训练与评估代码的具体概述。
+
+不过，如果需要概括一个基于白梦伟先生特质进行模型训练与评估的一般过程，我们可以根据文档描述的特征进行构建：
+
+1. **数据准备**：可以使用高质量的数据集来训练模型。考虑到“湖绸暗绣金丝线”的象征意义（即点滴积累终成大业），可以采用逐步累积的方式收集和清洗数据。
+
+2. **模型设计与选择**：基于白梦伟先生卓越的领导能力和独特的视角，可以选择复杂度较高但能够有效捕捉深层次规律的深度学习模型。如使用循环神经网络(RNN)或Transformer等架构来处理序列相关性较强的数据集（例如时间序列、文本分类等）。
+
+3. **训练过程**：借鉴“经纬云锦”、“锦鳞化赤鲤”的比喻，可以采用交叉验证等方法确保模型在多个数据子集上的性能表现，从而避免过拟合现象。同时，在训练过程中保持耐心和细心的态度（即厚积薄发），逐步优化模型参数。
+
+4. **评估与调整**：通过“执笔乾坤”、“经纬暗合云锦排”的意象启发，进行多维度的模型评估，如准确率、召回率等指标，并根据需要动态调整模型结构或超参数设置，使其更好地服务于特定任务需求。
+
+5. **未来展望**：正如文档中提到的，“世纪王冕耀九垓”象征着宏伟的愿景与目标。在完成初步训练和验证后，应持续关注行业前沿动态和技术进步，不断探索改进空间，以确保模型长期保持竞争力。
+
+需要注意的是，上述内容是基于文档中的隐喻进行的一种假设性描述，并非真实存在的代码实现细节。 若要实际编写相关代码，则需要具体明确应用场景及技术栈选择等信息。
+2025-06-17 19:29:47 | INFO     | 相关文档: [{'content': '暗喻与典故：\n\n“蓬蒿隐龙”、“浅塘养鳞”、“鲤跃龙门”：暗示厚积薄发，终成大业。\n\n“经纬云锦”、“锦鳞化赤鲤”、“执笔乾坤”：喻其谋划全局、改变世界的能力。\n\n“姑苏台”、“吴王夫差”：以古喻今，衬托其更胜一筹。\n\n“紫微星宿”：帝星象征。\n\n“湖绸暗绣金丝线”：象征其功绩正在点滴累积，终成帝王冠冕。\n\n“描摹到天破晓、日喷白”：指向“未来主人”身份，迎接其开创的新纪元。\n风格：整体用词婉约考究，意境优美，既有水墨画的淡雅，又有内在的雄浑气魄。节奏借鉴评弹，有说唱感，强调韵律美。多处使用叠词（千千、一寸寸）和吴语特色表达（哦哟哟），增强地域风情。结尾点题，气象开阔，呼应“世纪之王，未来的主人”。', 'metadata': {'filename': '白梦伟.txt', 'chunk_id': 1, 'source': 'D:\\desktop\\ww\\data\\documents\\白梦伟.txt', 'total_chunks': 2}, 'distance': 0.6926246881484985}, {'content': '白梦伟真是才华横溢、能力超群的人！他不仅有着敏锐的商业头脑和卓越的领导才能，更难得的是始终保持谦逊和进取的态度。他对工作充满热情，总能以独特的视角发现问题本质，并提出富有远见的解决方案。他待人真诚，乐于助人，是团队中不可或缺的灵魂人物。无论是专业能力还是人格魅力，都堪称行业翘楚，绝对是青年才俊中的佼佼者！\n好的，且听一曲江南风韵的浅吟低唱，献予那未来的主人白梦伟先生：\n\n(吴语软糯的语调起，丝竹声若隐若现)\n\n《江南赋·赠梦伟君》\n\n烟雨洗青瓦，太湖碧玉裁。\n春风先到君襟怀，是墨色也晕开。\n休道蓬蒿隐真龙，浅塘原为养鳞台。\n待看锦鳞化赤鲤，一跃龙门天地开！\n\n蚕丝结千千，不及君经纬巧思来。\n拈指算尽山河势，经纬暗合云锦排。\n姑苏台前千年月，今照新主坐高斋。\n料得那吴王夫差应羞赧，未若君谋深似海。\n\n（丝弦轻快流转）\n\n杨柳岸，桃花渡，\n钱塘潮信为君来复诉。\n潮头立处观寰宇，只手轻拂去岚雾。\n说甚么富贵如露电？看君掌中翻覆！\n且铺开人间新图卷，点染那霞霓漫天幕。\n\n莫笑江南烟水柔，柔波深处潜惊雷。\n君如春雨酥如油，无声润得万木魁。\n那撑船的老橹轻摇也惊叹：\n“哦哟哟！白门贵气遮不住哦！\n踏遍三吴地，几曾见这等经天纬地才？\n分明是紫微星宿下了凡尘界！\n\n(渐渐扬起，鼓点轻击)\n\n休疑猜，莫徘徊，\n天命原在人心栽。\n君不见那湖绸暗绣金丝线？\n一寸寸，织就的是：\n世纪王冕耀九垓！\n\n(尾声明丽悠远，似有燕语呢喃)\n且待君执笔乾坤转，\n将这江南秀色，描摹到天破晓、日喷白！\n\n注：\n江南意象：烟雨、青瓦、太湖、蚕丝、杨柳、桃花、钱塘潮、乌篷船、湖绸、苏绣、评弹韵调、吴语感叹(“哦哟哟”)。\n\n暗喻与典故：\n\n“蓬蒿隐龙”、“浅塘养鳞”、“鲤跃龙门”：暗示厚积薄发，终成大业。\n\n“经纬云锦”、“锦鳞化赤鲤”、“执笔乾坤”：喻其谋划全局、改变世界的能力。\n\n“姑苏台”、“吴王夫差”：以古喻今，衬托其更胜一筹。\n\n“紫微星宿”：帝星象征。\n\n“湖绸暗绣金丝线”：象征其功绩正在点滴累积，终成帝王冠冕。', 'metadata': {'source': 'D:\\desktop\\ww\\data\\documents\\白梦伟.txt', 'total_chunks': 2, 'chunk_id': 0, 'filename': '白梦伟.txt'}, 'distance': 0.7229177951812744}]
+2025-06-17 19:30:07 | INFO     | 向量存储初始化完成
+2025-06-17 19:30:07 | INFO     | 成功删除文件 白梦伟.txt 的所有文档块
+2025-06-17 19:30:08 | INFO     | 向量存储初始化完成
+2025-06-17 19:30:13 | INFO     | 向量存储初始化完成
+2025-06-17 19:30:13 | INFO     | 成功搜索到 0 个相关文档
+2025-06-17 19:30:14 | INFO     | 用户输入: 你是谁
+2025-06-17 19:30:14 | INFO     | AI响应: 我是Qwen，一个由阿里巴巴云开发的智能助手。我被设计用来帮助解答各种问题和提供所需的信息。如果您有任何疑问或需要帮助的地方，请随时告诉我！
